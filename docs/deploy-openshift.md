@@ -5,6 +5,7 @@ This guide covers deploying the [NVIDIA Video Search and Summarization (VSS) v2.
 ## Table of Contents
 
 - [What We're Deploying](#what-were-deploying)
+- [Tested Hardware](#tested-hardware)
 - [Prerequisites](#prerequisites)
 - [Configuration Reference](#configuration-reference)
 - [Deployment](#deployment)
@@ -33,6 +34,35 @@ VSS is a video analytics platform that ingests video (file upload or RTSP live s
 - **Alerts:** vss monitors captions for user-defined event keywords
 
 The Helm chart deploys 11 pods. Four require GPUs (`vss`, `nim-llm`, `nemo-embedding`, `nemo-rerank`); the rest are infrastructure services (Milvus, MinIO, etcd, Elasticsearch, ArangoDB, Neo4j).
+
+---
+
+## Tested Hardware
+
+This deployment was validated on the following cluster configuration:
+
+**Cluster:** OpenShift 4.19 on AWS (us-east-2)
+
+### GPU nodes
+
+| Instance Type | GPU | VRAM | vCPU | RAM | Count | Role in VSS |
+|---------------|-----|------|------|-----|-------|-------------|
+| `g6e.2xlarge` | 1x NVIDIA L40S | 46 GB | 8 | 64 GiB | 2 | VLM (Cosmos-Reason2-8B), nemo-rerank (1 GPU each) |
+| `p4d.24xlarge` | 8x NVIDIA A100 40GB | 40 GB each | 96 | 1.1 TiB | 1 | nim-llm (Llama 8B), nemo-embedding (2 of 8 GPUs used) |
+
+### Worker nodes (non-GPU)
+
+| Instance Type | vCPU | RAM | Count | Role in VSS |
+|---------------|------|-----|-------|-------------|
+| `m6i.2xlarge` | 8 | 32 GiB | 5 | Milvus, MinIO, etcd, Elasticsearch, ArangoDB, Neo4j |
+
+### Minimum hardware for reproduction
+
+Any cluster with the following should work:
+
+- **4 GPUs** with at least **40 GB VRAM** each (L40S, A100, or equivalent) — one each for VLM, nim-llm, nemo-embedding, nemo-rerank. NVIDIA A10G (22 GB) is **not sufficient** — the VLM (Cosmos-Reason2-8B) requires ~22 GiB for model weights + KV cache, exceeding available memory
+- **~1 CPU core** and **~17 GiB RAM** across worker nodes for non-GPU pods (Elasticsearch alone requests 16 GiB)
+- To run **Llama 70B** instead of 8B, nim-llm requires **4 GPUs on a single node** (tensor parallelism cannot span nodes), plus 2 GPUs for the VLM (upstream default), for a total of **8 GPUs**. NVIDIA recommends A100 **80GB** or higher for 70B. Set `LLM_MODEL=meta/llama-3.1-70b-instruct`, `LLM_IMAGE=nvcr.io/nim/meta/llama-3.1-70b-instruct`, `LLM_GPU_COUNT=4`, `VLM_GPU_COUNT=2`. See NVIDIA's [supported platforms](https://docs.nvidia.com/vss/latest/content/supported_platforms.html#supported-platforms) for validated GPU topologies
 
 ---
 
