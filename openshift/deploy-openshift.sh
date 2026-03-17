@@ -24,7 +24,7 @@ GPU_TOLERATION_KEYS="${GPU_TOLERATION_KEYS:-nvidia.com/gpu}"
 GPU_TOLERATION_EFFECT="${GPU_TOLERATION_EFFECT:-NoSchedule}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHART_TGZ="$SCRIPT_DIR/nvidia-blueprint-vss-2.4.1.tgz"
+CHART_TGZ="$SCRIPT_DIR/../deploy/helm/nvidia-blueprint-vss-2.4.1.tgz"
 
 # Create namespace
 oc get namespace "$NAMESPACE" &>/dev/null || oc create namespace "$NAMESPACE"

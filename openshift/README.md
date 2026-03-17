@@ -117,7 +117,7 @@ NGC_API_KEY=nvapi-... \
 HF_TOKEN=hf_... \
 NAMESPACE=<your-namespace> \
 GPU_TOLERATION_KEYS=<taint-key> \
-bash deploy/helm/deploy-openshift.sh
+bash openshift/deploy-openshift.sh
 ```
 
 Replace `GPU_TOLERATION_KEYS` with the actual taint key(s) on your GPU nodes (comma-separated for multiple taints). To find them:
@@ -449,7 +449,7 @@ The LLM model name is hardcoded in three independent locations within the chart.
 
 ## Deployment Files
 
-All OpenShift customizations are codified in two files placed in `deploy/helm/` alongside NVIDIA's upstream chart:
+All OpenShift customizations are codified in two files in the `openshift/` folder. The upstream chart remains in `deploy/helm/` and is referenced in place:
 
 - **`deploy-openshift.sh`** - Main deployment script. Creates the namespace, service account, secrets, and runs `helm upgrade --install` with all overrides.
 - **`values-openshift.yaml`** - Helm values override for OpenShift. Contains structural overrides that are cleanest in YAML.
